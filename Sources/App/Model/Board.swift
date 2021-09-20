@@ -1,7 +1,11 @@
 class Board {
     
-    private var values : [[Int]] = []
-    
+    private(set) var values : [[Int]] = []
+
+    init() {
+        generate()
+    }
+  
     func generate() {
         var boardValues : [[Int]] = []
         let firstRow = generateRow()
@@ -50,6 +54,14 @@ class Board {
         }
         let valuesInRandomOrder = Array(values).shuffled()
         return valuesInRandomOrder
+    }
+
+    func setValues(values: [[Int]]) {
+        self.values = values
+    }
+
+    func putValue(row: Int, col: Int, value: Int) {
+        values[row][col] = value
     }
 
     func log() {

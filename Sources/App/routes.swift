@@ -1,5 +1,8 @@
 import Vapor
 
+let boardController = BoardController()
+let encoder = JSONEncoder()
+
 func routes(_ app: Application) throws {
     app.get { req in
         return "It works!"
@@ -10,8 +13,11 @@ func routes(_ app: Application) throws {
     }
 
     app.post("games") { req -> String in
-        return "games endpoint works"
-
+        let newBoard = boardController.getNewBoard()
+        encoder.outputFormatting = .prettyPrinted
+        let data = try encoder.encode(newBoard.id)
+        return String(data: data, encoding: .utf8)!
+        
         // * Action: Creates a new game and associated board
         // * Payload: None
         // * Response: Id uniquely identifying a game
@@ -23,9 +29,18 @@ func routes(_ app: Application) throws {
 
         let rawBoardId = req.parameters.get("id")
         convertOptionalStringToInteger(stringToConvert: rawBoardId, integer: &boardId)
-              
-        return "games/id/cells endpoint works"
 
+        let rawBoard = boardController.getExistingBoard(id: boardId)
+        let board : BoardData
+        if(rawBoard != nil) {
+            board = rawBoard!
+        } else {
+            throw Abort(.badRequest)
+        }
+
+        let data = try encoder.encode(board.values)
+        return String(data: data, encoding: .utf8)!
+        
         // * Action: None
         // * Payload: None
         // * Response: cells
@@ -36,6 +51,7 @@ func routes(_ app: Application) throws {
         var boardId : Int = -1
         var boxIndex : Int = -1
         var cellIndex : Int = -1
+        var value : Int = 0
         
         let rawBoardId = req.parameters.get("id")
         convertOptionalStringToInteger(stringToConvert: rawBoardId, integer: &boardId)
@@ -44,9 +60,29 @@ func routes(_ app: Application) throws {
         convertOptionalStringToInteger(stringToConvert: rawBoxIndex, integer: &boxIndex)
 
         let rawCellIndex = req.parameters.get("cellIndex")
-        convertOptionalStringToInteger(stringToConvert: rawCellIndex, integer: &cellIndex)   
+        convertOptionalStringToInteger(stringToConvert: rawCellIndex, integer: &cellIndex)
+
+        if(!((0...8).contains(boxIndex) && (0...8).contains(cellIndex))) {
+            throw Abort(.badRequest)
+        }
         
-        return "games/id/cells/boxIndex/cellIndex endpoint works"
+        let rawBoard = boardController.getExistingBoard(id: boardId)
+        let boardData : BoardData
+        if(rawBoard != nil) {
+            boardData = rawBoard!
+        } else {
+            throw Abort(.badRequest)
+        }
+        let rawValue = req.body.string
+        convertOptionalStringToInteger(stringToConvert: rawValue, integer: &value)
+        value = value == -1 ? 0 : value
+
+        let cartesianCoordinates = boardController.convertBoxCellIndexesToRowAndColIndexes(boxIndex: boxIndex, cellIndex: cellIndex)
+        let board = Board()
+        board.setValues(values: boardData.values)
+        board.putValue(row: cartesianCoordinates.row, col: cartesianCoordinates.col, value: value)
+        boardController.updateBoard(data: BoardData(id: boardId, values: board.values))
+        return "Board updated"
         
         // * Action: Place specified value at in game at boxIndex, cellIndex
         // * Payload: value (null for removing value)
