@@ -1,30 +1,20 @@
 import Vapor
 
 struct CellValue : Content {
-    let id : String
-    let boxIndex : Int
-    let cellIndex : Int
+    let value : Int
 }
-
-struct BoardValues : Content {
-    let board : [[Int]]
-}
-
 
 func routes(_ app: Application) throws {
     app.get { req in
         return "Server side working!"
     }
 
-
-
-    
     // * Action: Creates a new game and associated board
     // * Payload: None
     // * Response: Id uniquely identifying a game
     // * Status code: 201 Created
     
-    app.post("games") { req -> String in
+    app.post("games") { req -> Response in
         /* do board setup here */
         let board = Board()
         board.fillBoard()
@@ -32,7 +22,10 @@ func routes(_ app: Application) throws {
         let uuid = UUID().uuidString
         /* assign board to id on the idTable */
         idTable[uuid] = board
-        return uuid
+        /* assign response type to data */
+        let body = Response.Body(string: uuid)
+        let response = Response(status: .created, body: body)
+        return response
     }
 
     // * Action: None
@@ -41,12 +34,11 @@ func routes(_ app: Application) throws {
     // * Status code: 200 OK
     
     app.get("games", ":id", "cells") { req -> String in
-        let id = req.parameters.get("id")!
-        //let board = BoardValues()
-        //board.board = idTable[id]?.getBoard()
 
-        // 2d array cannot be converted to string directly via swift functions or content class!!!!!
-        let json = idTable[id]?.jsonBoard() ?? "error"
+        /* retrieve parameterized id endpoint */
+        let id = req.parameters.get("id")!
+        /* 2d array of cells encoded into json */
+        let json = try idTable[id]?.jsonBoard() ?? "{\"status\": \"error\"}"
         return json
     }
 
@@ -55,14 +47,21 @@ func routes(_ app: Application) throws {
     // * Response: Nothing
     // * Status: 204 No Content
     
-    app.put("games", ":id", "cells", ":boxIndex", ":cellIndex") { req -> CellValue  in
+    app.put("games", ":id", "cells", ":boxIndex", ":cellIndex") { req -> HTTPStatus in
 
-        // "cellAssign" contains the Cell value content sent from the client to server
-        let cellAssign = try req.content.decode(CellValue.self)
-
-        // setting value
-        idTable[cellAssign.id]?.setVal(row:1, col:2, val:3)
-        
-        return cellAssign
+        /* retrieve parameterized endpoints as strings and convert to int accordingly */
+        let id = req.parameters.get("id")!
+        let boxIndex = Int(req.parameters.get("boxIndex")!) ?? 0
+        let cellIndex = Int(req.parameters.get("cellIndex")!) ?? 0
+        let cellValue = try req.content.decode(CellValue.self)
+/*******testing...
+        let diff = Difficulty.easy
+        idTable[id]?.setDifficulty(difficulty:diff)
+        idTable[id]?.setModifiableVal()
+ */
+        /* setting value */
+        idTable[id]?.setVal(boxIndex:boxIndex, cellIndex:cellIndex, val:cellValue.value)
+      
+        return HTTPStatus.noContent
     }
 }

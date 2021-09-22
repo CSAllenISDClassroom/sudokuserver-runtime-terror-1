@@ -1,13 +1,34 @@
+import Vapor
+
+enum Difficulty {
+    case easy
+    case medium
+    case hard
+}
+
 class Board {
 
-    //10 x 10 grid is used to easily access elements 1-9, while skipping element 0
-    //0's are used to represent empty cells, as 0's are an unused value
+    // 10 x 10 grid is used to easily access elements 1-9, while skipping element 0
+    // 0's are used to represent empty cells, as 0's are an unused value
+    // grid is contantly modified, boolGrid checks modifiable values, filledBoard is the board used to generate different difficulties
     private var grid = Array(repeating: Array(repeating: 0, count: 10), count: 10)
-       
+    private var boolGrid = Array(repeating: Array(repeating: false, count: 10), count: 10)
+    private var filledBoard = Array(repeating: Array(repeating: 0, count: 10), count: 10)
+    
     init() {}
 
     func setVal(row:Int, col:Int, val:Int) {
-        grid[row][col] = val
+        if boolGrid[row][col] {
+            grid[row][col] = val
+        }
+    }
+
+    func setVal(boxIndex:Int, cellIndex:Int, val:Int) {
+        let row = (boxIndex - 1) / 3 * 3 + (cellIndex - 1) / 3 + 1
+        let col = (boxIndex - 1) % 3 * 3 + (cellIndex) % 3 
+        if boolGrid[row][col] {
+            grid[row][col] = val
+        }
     }
     
     private func checkCell(row:Int, col:Int) -> Set<Int> {   // checks and returns a set of valid values in a cell
@@ -111,9 +132,10 @@ class Board {
         if backtracking() {
             printBoard()
         }
+        filledBoard = grid
     }
     
-    func subtractBoard(deletedVal:Int) {
+    private func subtractBoard(deletedVal:Int) {
         var emptyVal = 0
         while emptyVal < deletedVal {
             let row = Int.random(in:1 ... 9)
@@ -125,6 +147,33 @@ class Board {
         }
     }
 
+    func setModifiableVal() {
+        for row in 1 ... 9 {
+            for col in 1 ... 9 {
+                if grid[row][col] == 0 {
+                    boolGrid[row][col] = true
+                } else {
+                    boolGrid[row][col] = false
+                }
+            }
+        }
+    }
+
+    func setDifficulty(difficulty:Difficulty) {
+        grid = filledBoard
+        switch(difficulty) {
+        case .easy:
+            subtractBoard(deletedVal:40)
+            break
+        case .medium:
+            subtractBoard(deletedVal:50)
+            break
+        case .hard:
+            subtractBoard(deletedVal:60)
+            break
+        }
+    }
+    
     func checkBoard() -> Bool {
         for row in 1 ... 9 {
             for col in 1 ... 9 {
@@ -150,25 +199,9 @@ class Board {
         }
     }
 
-    func jsonBoard() -> String {
-        var boardString = "{ \"board\": ["
-        for row in 1 ... 9 {
-            boardString.append("[")
-            for col in 1 ... 9 {
-                boardString.append(String(grid[row][col]))
-                if col < 9 {
-                    boardString.append(",")
-                }
-            }
-            boardString.append("]")
-            if row < 9 {
-                boardString.append(",")
-            }
-        }
-        boardString.append("]}")
-         /*
-        boardString.append(String(grid))
-        boardString.append("}")*/
-        return boardString
+    func jsonBoard() throws -> String {
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(grid)
+        return String(data: data, encoding: .utf8)!
     }
 }
