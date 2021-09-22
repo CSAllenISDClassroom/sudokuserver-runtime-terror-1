@@ -12,11 +12,13 @@ func routes(_ app: Application) throws {
         return "Hello, world!"
     }
 
-    app.post("games") { req -> String in
+    app.post("games") { req -> Response in
         let newBoard = boardController.getNewBoard()
         encoder.outputFormatting = .prettyPrinted
         let data = try encoder.encode(newBoard.id)
-        return String(data: data, encoding: .utf8)!
+        let body = Response.Body(string: String(data: data, encoding: .utf8)!)
+        let response = Response(status: .created, body: body)
+        return response
         
         // * Action: Creates a new game and associated board
         // * Payload: None
@@ -24,7 +26,7 @@ func routes(_ app: Application) throws {
         // * Status code: 201 Created
     }
 
-    app.get("games", ":id", "cells") { req -> String in
+    app.get("games", ":id", "cells") { req -> Response in
         var boardId : Int = -1
 
         let rawBoardId = req.parameters.get("id")
@@ -39,7 +41,10 @@ func routes(_ app: Application) throws {
         }
 
         let data = try encoder.encode(board.values)
-        return String(data: data, encoding: .utf8)!
+
+        let body = Response.Body(string: String(data: data, encoding: .utf8)!)
+        let response = Response(status: .ok, body: body)
+        return response
         
         // * Action: None
         // * Payload: None
@@ -47,7 +52,7 @@ func routes(_ app: Application) throws {
         // * Status code: 200 OK
     }
 
-    app.put("games", ":id", "cells", ":boxIndex", ":cellIndex") { req -> String in
+    app.put("games", ":id", "cells", ":boxIndex", ":cellIndex") { req -> Response in
         var boardId : Int = -1
         var boxIndex : Int = -1
         var cellIndex : Int = -1
@@ -82,7 +87,9 @@ func routes(_ app: Application) throws {
         board.setValues(values: boardData.values)
         board.putValue(row: cartesianCoordinates.row, col: cartesianCoordinates.col, value: value)
         boardController.updateBoard(data: BoardData(id: boardId, values: board.values))
-        return "Board updated"
+
+        let response = Response(status: .noContent)
+        return response
         
         // * Action: Place specified value at in game at boxIndex, cellIndex
         // * Payload: value (null for removing value)
