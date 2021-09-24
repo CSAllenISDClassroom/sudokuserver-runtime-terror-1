@@ -18,16 +18,12 @@ func routes(_ app: Application) throws {
     // * Status code: 201 Created
     
     app.post("games") { req -> Response in
-        /* do board setup here */
-        let board = Board()
-        board.fillBoard()
-        /* do unique identification here */
-        let uuid = UUID().uuidString
-        /* assign board to id on the idTable */
-        idTable[uuid] = board
+        /* generate and get new board */
+        let id = boardController.getNewBoard()
         /* assign response type to data */
-        let body = Response.Body(string: uuid)
+        let body = Response.Body(string: id)
         let response = Response(status: .created, body: body)
+        
         return response
     }
 
@@ -41,7 +37,8 @@ func routes(_ app: Application) throws {
         /* retrieve parameterized id endpoint */
         let id = req.parameters.get("id")!
         /* 2d array of cells encoded into json */
-        let json = try idTable[id]?.jsonBoard() ?? "{\"status\": \"error\"}"
+        let board = boardController.getExistingBoard(id:id)
+        let json = try board?.jsonBoard() ?? "{\"status\": \"error\"}"
         return json
     }
 
@@ -57,13 +54,16 @@ func routes(_ app: Application) throws {
         let boxIndex = Int(req.parameters.get("boxIndex")!) ?? 0
         let cellIndex = Int(req.parameters.get("cellIndex")!) ?? 0
         let cellValue = try req.content.decode(CellValue.self)
-/*******testing...
+
+        /*******testing...
         let diff = Difficulty.easy
         idTable[id]?.setDifficulty(difficulty:diff)
         idTable[id]?.setModifiableVal()
-*/
+         */
+
         /* setting value */
-        idTable[id]?.setVal(boxIndex:boxIndex, cellIndex:cellIndex, val:cellValue.value)
+        let board = boardController.getExistingBoard(id:id)
+        board?.setVal(boxIndex:boxIndex, cellIndex:cellIndex, val:cellValue.value)
       
         return HTTPStatus.noContent
     }

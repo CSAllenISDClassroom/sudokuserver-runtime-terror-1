@@ -9,7 +9,7 @@ class Board {
     private var boolGrid = Array(repeating: Array(repeating: false, count: 10), count: 10)
     private var filledBoard = Array(repeating: Array(repeating: 0, count: 10), count: 10)
 
-    // TODO: add a function to setup a filled board
+    // currently filled board setup function is called separately
     init() {}
 
     func setVal(row:Int, col:Int, val:Int) {
@@ -20,7 +20,7 @@ class Board {
 
     func setVal(boxIndex:Int, cellIndex:Int, val:Int) {
         let row = (boxIndex - 1) / 3 * 3 + (cellIndex - 1) / 3 + 1
-        let col = (boxIndex - 1) % 3 * 3 + (cellIndex) % 3 
+        let col = (boxIndex - 1) % 3 * 3 + (cellIndex - 1) % 3 + 1
         //if boolGrid[row][col] {
             grid[row][col] = val
         //}
@@ -197,7 +197,13 @@ class Board {
 
     func jsonBoard() throws -> String {
         let encoder = JSONEncoder()
-        let data = try encoder.encode(grid)
+        var nineByNineGrid = Array(repeating: Array(repeating: 0, count: 9), count: 9)
+        for row in 1 ... 9 {
+            for col in 1 ... 9 {
+                nineByNineGrid[row - 1][col - 1] = grid[row][col]
+            }
+        }  
+        let data = try encoder.encode(nineByNineGrid)
         return String(data: data, encoding: .utf8)!
     }
 }
