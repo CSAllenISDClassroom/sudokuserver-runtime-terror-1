@@ -33,6 +33,7 @@ func routes(_ app: Application) throws {
         /* assign response type to data */
         let body = Response.Body(string: id)
         let response = Response(status: .created, body: body)
+<<<<<<< HEAD
         return response
         // * Action: Creates a new game and associated board
         // * Payload: None
@@ -50,6 +51,9 @@ func routes(_ app: Application) throws {
         let data = try encoder.encode(boardData.grid)
         let body = Response.Body(string: String(data: data, encoding: .utf8)!)
         let response = Response(status: .ok, body: body)
+=======
+        
+>>>>>>> a81e50dc540b8bc74fc601fd07add4d84f9c6487
         return response
     }
 

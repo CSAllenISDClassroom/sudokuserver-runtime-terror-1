@@ -5,7 +5,11 @@ class Board {
     // 10 x 10 grid is used to easily access elements 1-9, while skipping element 0
     // 0's are used to represent empty cells, as 0's are an unused value
     // grid is contantly modified, boolGrid checks modifiable values, filledBoard is the board used to generate different difficulties
+<<<<<<< HEAD
     private(set) var grid = Array(repeating: Array(repeating: 0, count: 10), count: 10)
+=======
+    private var grid = Array(repeating: Array(repeating: 0, count: 10), count: 10)
+>>>>>>> a81e50dc540b8bc74fc601fd07add4d84f9c6487
     private var boolGrid = Array(repeating: Array(repeating: false, count: 10), count: 10)
     private var filledBoard = Array(repeating: Array(repeating: 0, count: 10), count: 10)
 

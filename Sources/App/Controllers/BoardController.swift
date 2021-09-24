@@ -22,6 +22,7 @@ class BoardController {
         return boards[id]
     }
 }
+<<<<<<< HEAD
 
 struct BoardData: Codable {
     let id: String
@@ -31,3 +32,5 @@ struct BoardData: Codable {
 struct BoardId: Codable {
     let id: Int
 }
+=======
+>>>>>>> a81e50dc540b8bc74fc601fd07add4d84f9c6487
