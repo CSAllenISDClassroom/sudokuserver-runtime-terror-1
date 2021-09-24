@@ -13,23 +13,27 @@ import Vapor
 let boardController = BoardController()
 let encoder = JSONEncoder()
 
+struct CellValue : Content {
+    let value : Int
+}
+
 func routes(_ app: Application) throws {
     app.get { req in
-        return "It works!"
+        return "Server side working!"
     }
 
-    app.get("hello") { req -> String in
-        return "Hello, world!"
-    }
-
+    // * Action: Creates a new game and associated board
+    // * Payload: None
+    // * Response: Id uniquely identifying a game
+    // * Status code: 201 Created
+    
     app.post("games") { req -> Response in
-        let newBoard = boardController.getNewBoard()
-        encoder.outputFormatting = .prettyPrinted
-        let data = try encoder.encode(newBoard.id)
-        let body = Response.Body(string: String(data: data, encoding: .utf8)!)
+        /* generate and get new board */
+        let id = boardController.getNewBoard()
+        /* assign response type to data */
+        let body = Response.Body(string: id)
         let response = Response(status: .created, body: body)
         return response
-        
         // * Action: Creates a new game and associated board
         // * Payload: None
         // * Response: Id uniquely identifying a game
@@ -37,81 +41,56 @@ func routes(_ app: Application) throws {
     }
 
     app.get("games", ":id", "cells") { req -> Response in
-        guard let rawBoardId = req.parameters.get("id"),
-              var boardId = Int(rawBoardId),
-              let boardData = boardController.getExistingBoard(id: boardId) else {
+        guard let boardId = req.parameters.get("id"),
+              let boardData = boardController.getExistingBoard(id: boardId)
+        else {
             throw Abort(.badRequest)
         }
 
-        let data = try encoder.encode(boardData.values)
+        let data = try encoder.encode(boardData.grid)
         let body = Response.Body(string: String(data: data, encoding: .utf8)!)
         let response = Response(status: .ok, body: body)
         return response
-        
-        // * Action: None
-        // * Payload: None
-        // * Response: cells
-        // * Status code: 200 OK
     }
 
-    app.put("games", ":id", "cells", ":boxIndex", ":cellIndex") { req -> Response in
-        var boardId : Int = -1
-        var boxIndex : Int = -1
-        var cellIndex : Int = -1
-        var value : Int = 0
-        
-        let rawBoardId = req.parameters.get("id")
-        convertOptionalStringToInteger(stringToConvert: rawBoardId, integer: &boardId)
-        
-        let rawBoxIndex = req.parameters.get("boxIndex")
-        convertOptionalStringToInteger(stringToConvert: rawBoxIndex, integer: &boxIndex)
+    // * Action: None
+    // * Payload: None
+    // * Response: cells
+    // * Status code: 200 OK
+    
+    app.get("games", ":id", "cells") { req -> String in
 
-        let rawCellIndex = req.parameters.get("cellIndex")
-        convertOptionalStringToInteger(stringToConvert: rawCellIndex, integer: &cellIndex)
-
-        if(!((0...8).contains(boxIndex) && (0...8).contains(cellIndex))) {
-            throw Abort(.badRequest)
-        }
-        
-        let rawBoard = boardController.getExistingBoard(id: boardId)
-        let boardData : BoardData
-        if(rawBoard != nil) {
-            boardData = rawBoard!
-        } else {
-            throw Abort(.badRequest)
-        }
-        let rawValue = req.body.string
-        convertOptionalStringToInteger(stringToConvert: rawValue, integer: &value)
-        value = value == -1 ? 0 : value
-
-        let cartesianCoordinates = boardController.convertBoxCellIndexesToRowAndColIndexes(boxIndex: boxIndex, cellIndex: cellIndex)
-        let board = Board()
-        board.setValues(values: boardData.values)
-        board.putValue(row: cartesianCoordinates.row, col: cartesianCoordinates.col, value: value)
-        boardController.updateBoard(data: BoardData(id: boardId, values: board.values))
-
-        let response = Response(status: .noContent)
-        return response
-        
-        // * Action: Place specified value at in game at boxIndex, cellIndex
-        // * Payload: value (null for removing value)
-        // * Response: Nothing
-        // * Status: 204 No Content
+        /* retrieve parameterized id endpoint */
+        let id = req.parameters.get("id")!
+        /* 2d array of cells encoded into json */
+        let board = boardController.getExistingBoard(id:id)
+        let json = try board?.jsonBoard() ?? "{\"status\": \"error\"}"
+        return json
     }
-}
 
-func convertOptionalStringToInteger(stringToConvert: String?, integer: inout Int) {
-    if(stringToConvert != nil && stringToConvert!.isNumber) {
-        integer = Int(stringToConvert!)!
-    } else {
-        integer = -1
-        print("Unable to successfully convert optional string to an integer.")
-        // should ideally throw an error here
-    }
-}
+    // * Action: Place specified value at in game at boxIndex, cellIndex
+    // * Payload: value (null for removing value)
+    // * Response: Nothing
+    // * Status: 204 No Content
+    
+    app.put("games", ":id", "cells", ":boxIndex", ":cellIndex") { req -> HTTPStatus in
 
-extension String {
-    var isNumber: Bool {
-        return !isEmpty && rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) == nil
+        /* retrieve parameterized endpoints as strings and convert to int accordingly */
+        let id = req.parameters.get("id")!
+        let boxIndex = Int(req.parameters.get("boxIndex")!) ?? 0
+        let cellIndex = Int(req.parameters.get("cellIndex")!) ?? 0
+        let cellValue = try req.content.decode(CellValue.self)
+
+        /*******testing...
+        let diff = Difficulty.easy
+        idTable[id]?.setDifficulty(difficulty:diff)
+        idTable[id]?.setModifiableVal()
+         */
+
+        /* setting value */
+        let board = boardController.getExistingBoard(id:id)
+        board?.setVal(boxIndex:boxIndex, cellIndex:cellIndex, val:cellValue.value)
+      
+        return HTTPStatus.noContent
     }
 }
