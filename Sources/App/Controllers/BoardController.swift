@@ -38,3 +38,7 @@ struct BoardData: Codable {
     let id: Int
     let values: [[Int]]
 }
+
+struct BoardId: Codable {
+    let id: Int
+}
