@@ -58,7 +58,7 @@ func routes(_ app: Application) throws {
         let diff = Difficulty.easy
         idTable[id]?.setDifficulty(difficulty:diff)
         idTable[id]?.setModifiableVal()
- */
+*/
         /* setting value */
         idTable[id]?.setVal(boxIndex:boxIndex, cellIndex:cellIndex, val:cellValue.value)
       
