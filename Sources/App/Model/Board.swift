@@ -97,6 +97,13 @@ class Board {
     }
 
     private func backtracking() -> Bool {
+      /* A general algorithm for fidning solutions to some computationl 
+        problems, notably satisfaction problems, that incrementally builds 
+        candidates to the solutions, and abandons a cnadidate as soon as it
+        determines that the candidate cannot possibly be completed to a 
+        valid solution.
+       */
+        
         let position = emptyCellPosition()
         let row = position[0]
         let col = position[1]
@@ -105,7 +112,7 @@ class Board {
         if row == 0 {
             return true
         }
-
+        
         for candidate in 1 ... 9 {
             if isValidVal(row:row, col:col, val:candidate) {
                 grid[row][col] = candidate
