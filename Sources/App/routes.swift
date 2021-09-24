@@ -1,5 +1,15 @@
 import Vapor
 
+/*
+ TODO
+ - guard lets
+ - merging code
+ - json encoding
+ - property and function access modifiers (public/private)
+ - Board class code
+ - BoardData struct code + converting from BoardData to Board and vice-versa
+ */
+
 let boardController = BoardController()
 let encoder = JSONEncoder()
 
@@ -27,21 +37,13 @@ func routes(_ app: Application) throws {
     }
 
     app.get("games", ":id", "cells") { req -> Response in
-        var boardId : Int = -1
-
-        let rawBoardId = req.parameters.get("id")
-        convertOptionalStringToInteger(stringToConvert: rawBoardId, integer: &boardId)
-
-        let rawBoard = boardController.getExistingBoard(id: boardId)
-        let board : BoardData
-        if(rawBoard != nil) {
-            board = rawBoard!
-        } else {
+        guard let rawBoardId = req.parameters.get("id"),
+              var boardId = Int(rawBoardId),
+              let boardData = boardController.getExistingBoard(id: boardId) else {
             throw Abort(.badRequest)
         }
 
-        let data = try encoder.encode(board.values)
-
+        let data = try encoder.encode(boardData.values)
         let body = Response.Body(string: String(data: data, encoding: .utf8)!)
         let response = Response(status: .ok, body: body)
         return response
