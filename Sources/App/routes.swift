@@ -40,25 +40,6 @@ func routes(_ app: Application) throws {
         // * Response: Id uniquely identifying a game
         // * Status code: 201 Created
     }
-
-    app.get("games", ":id", "cells") { req -> Response in
-        guard let boardId = req.parameters.get("id"),
-              let boardData = boardController.getExistingBoard(id: boardId)
-        else {
-            throw Abort(.badRequest)
-        }
-
-        let data = try encoder.encode(boardData.grid)
-        let body = Response.Body(string: String(data: data, encoding: .utf8)!)
-        let response = Response(status: .ok, body: body)
-
-        return response
-    }
-
-    // * Action: None
-    // * Payload: None
-    // * Response: cells
-    // * Status code: 200 OK
     
     app.get("games", ":id", "cells") { req -> String in
 
