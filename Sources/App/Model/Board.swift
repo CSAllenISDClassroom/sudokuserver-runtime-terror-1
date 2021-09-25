@@ -78,6 +78,7 @@ class Board {
         }
     }
 
+//Helper function for checking if the value can be place in the cell validly.
     private func isValidVal(row:Int, col:Int, val:Int) -> Bool {
         if checkCell(row:row, col:col).contains(val) {
             return true
@@ -130,7 +131,7 @@ class Board {
         return false
     }
     
-    func fillBoard() {
+    func fillBoard() { //filled the board diagonally
         fillBox(box:1)
         fillBox(box:5)
         fillBox(box:9)
@@ -139,7 +140,7 @@ class Board {
         }
         filledBoard = grid
     }
-    
+
     private func subtractBoard(deletedVal:Int) {
         var emptyVal = 0
         while emptyVal < deletedVal {
@@ -151,7 +152,8 @@ class Board {
             }
         }
     }
-
+    
+    
     func setModifiableVal() {
         for row in 1 ... 9 {
             for col in 1 ... 9 {
@@ -164,6 +166,7 @@ class Board {
         }
     }
 
+    //Difficulty
     func setDifficulty(difficulty:Difficulty) {
         grid = filledBoard
         switch(difficulty) {
@@ -195,6 +198,7 @@ class Board {
         return grid
     }
 
+    
     func printBoard() {
         for row in 1 ... 9 {
             for col in 1 ... 9 {
