@@ -140,7 +140,7 @@ class Board {
         }
         filledBoard = grid
     }
-
+//Function that remove values in filled cells depending on difficulty
     private func subtractBoard(deletedVal:Int) {
         var emptyVal = 0
         while emptyVal < deletedVal {
@@ -181,6 +181,7 @@ class Board {
             break
         }
     }
+
     
     func checkBoard() -> Bool {
         for row in 1 ... 9 {
