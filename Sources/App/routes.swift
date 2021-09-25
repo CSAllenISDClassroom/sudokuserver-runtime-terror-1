@@ -50,6 +50,7 @@ func routes(_ app: Application) throws {
               let json = try? board.jsonBoard() else {
             throw Abort(.badRequest, reason: "Failed to encode Board to Json")
         }
+        
         return json
     }
 
@@ -63,11 +64,18 @@ func routes(_ app: Application) throws {
     app.put("games", ":id", "cells", ":boxIndex", ":cellIndex") { req -> HTTPStatus in
 
         /* retrieve parameterized endpoints as strings and convert to int accordingly */
+        /*guard let id = req.parameters.get("id"),
+              let boxIndex = Int(req.parameters.get("boxIndex")!),
+              let cellIndex = Int(req.parameters.get("cellIndex")!),
+              let cellValue = try? req.content.decode(CellValue.self) else {
+            throw Abort(.badRequest, reason: "Failed to encode boxIndex, cellIndex and cellValue")
+            }*/
+
         let id = req.parameters.get("id")!
         let boxIndex = Int(req.parameters.get("boxIndex")!) ?? 0
         let cellIndex = Int(req.parameters.get("cellIndex")!) ?? 0
         let cellValue = try req.content.decode(CellValue.self)
-       
+        
 
         /*******testing...
         let diff = Difficulty.easy
