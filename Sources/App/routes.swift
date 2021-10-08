@@ -16,12 +16,11 @@ let encoder = JSONEncoder()
 struct CellValue : Content {
     let value : Int
 }
-
 func routes(_ app: Application) throws {
     app.get { req in
-        return "Server side working!"
+        return  "Server side working!"
     }
-
+        
     // * Action: Creates a new game and associated board
     // * Payload: None
     // * Response: Id uniquely identifying a game
@@ -65,18 +64,14 @@ func routes(_ app: Application) throws {
 
         /* retrieve parameterized endpoints as strings and convert to int accordingly */
 
-        /* guard let id = req.parameters.get("id"),
+         guard let id = req.parameters.get("id"), 
               let boxIndex = req.parameters.get("boxIndex", as: Int.self),
               let cellIndex = req.parameters.get("cellIndex", as: Int.self),
               let cellValue = try? req.content.decode(CellValue.self) else {
-            throw Abort(.badRequest, reason: "Failed to encode boxIndex, cellIndex and cellValue")
-            }
-*/
-        let id = req.parameters.get("id")!
-        let boxIndex = Int(req.parameters.get("boxIndex")!) ?? 0
-        let cellIndex = Int(req.parameters.get("cellIndex")!) ?? 0
-        let cellValue = try req.content.decode(CellValue.self)
-        
+             throw Abort(.badRequest, reason: "Failed to encode boxIndex, cellIndex or cellValue")
+
+             
+            } 
 
         /*******testing...
         let diff = Difficulty.easy
