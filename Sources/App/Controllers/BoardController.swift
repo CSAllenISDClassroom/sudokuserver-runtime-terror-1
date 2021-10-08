@@ -1,33 +1,19 @@
-import Foundation
-
 class BoardController {
-    // Control board values
-    // Modify JSON
-
-    var boards : [String : Board] = [:]
-
-    func getNewBoard() -> String {
-        /* do board setup here */
-        let board = Board()
-        board.fillBoard()
-        /* do unique identification here */
-        let uuid = UUID().uuidString
-        /* assign board to id on the idTable */
-        boards[uuid] = board
-
-        return uuid
+    func getNewBoard(difficulty: Difficulty) {
+        
     }
 
-    func getExistingBoard(id: String) -> Board? {
-        return boards[id]
+    func generateBoard() {
+        
     }
-}
 
-struct BoardData: Codable {
-    let id: String
-    let values: [[Int]]
-}
-
-struct BoardId: Codable {
-    let id: Int
+    func generateBox(boxIndex : Int = 0) {
+        var values = Array(1...9)
+        randomizedValues = values.shuffle()
+        var cells = [Cell]()
+        for value in randomizedValues {
+            
+            cells.append(Cell(position: 
+        }
+    }
 }
