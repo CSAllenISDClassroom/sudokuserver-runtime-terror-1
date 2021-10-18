@@ -5,10 +5,14 @@ struct Position: Codable {
 
 struct Cell: Codable {
     let position: Position
-    let value: Int?
+    var value: Int?
 }
 struct Box: Codable {
-    let cells: [Cell]
+    var cells: [Cell]
+
+    init(cells: [Cell]) {
+        self.cells = cells
+    }
 
     init(boxIndex: Int) {
         var cells = [Cell]()
@@ -20,13 +24,17 @@ struct Box: Codable {
 }
 
 struct Board: Codable {
-    let board: [Box]
+    var board: [Box]
 
     init() {
         var board = [Box]()
         for boxIndex in 0 ..< 9 {
             board.append(Box(boxIndex: boxIndex))
         }
+        self.board = board
+    }
+
+    init(board: [Box]) {
         self.board = board
     }
 }
