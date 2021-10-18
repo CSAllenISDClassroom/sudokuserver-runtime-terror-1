@@ -1,4 +1,4 @@
-enum Difficulty {
+public enum Difficulty {
     case easy
     case medium
     case hard
