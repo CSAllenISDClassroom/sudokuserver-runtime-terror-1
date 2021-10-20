@@ -55,17 +55,21 @@ func routes(_ app: Application) throws {
     }
     
     app.get("games", ":id", "cells") { req -> String in
-        let filterConversion : [String : Filter] = ["all" : .all,
-                                                    "repeated" : .repeated,
-                                                    "incorrect" : .incorrect]
-                
+
         guard let id = req.parameters.get("id", as: Int.self),
-              let rawFilter: String = req.query["filter"],
-              let _ = filterConversion[rawFilter], // filter not fully implemented yet! TODO: change _ to filter as name of variable
-              let board = boardController.getExistingBoard(id:id),
-              let data = try? encoder.encode(board),
-              let json = String(data: data, encoding: .utf8) else {
+              let board = boardController.getExistingBoard(id: id) else {
             throw Abort(.badRequest, reason: "The board with the specified id could not be found.")
+        }
+        
+        guard let rawFilter: String = req.query["filter"],
+              // filter not fully implemented yet! TODO: change _ to filter as name of variable
+              let _ : Filter = Filter(rawValue: rawFilter) else {
+            throw Abort(.badRequest, reason: "The filter specified doesn't match the requirements.")
+        }
+
+        guard let data = try? encoder.encode(board),
+              let json = String(data: data, encoding: .utf8) else {
+            throw Abort(.badRequest, reason: "There was a problem with returning back the board to you!")
         }
         
         return json
