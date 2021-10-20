@@ -78,7 +78,7 @@ class Board {
         }
     }
 
-//Helper function for checking if the value can be place in the cell validly.
+    //Helper function for checking if the value can be place in the cell validly.
     private func isValidVal(row:Int, col:Int, val:Int) -> Bool {
         if checkCell(row:row, col:col).contains(val) {
             return true
@@ -86,8 +86,8 @@ class Board {
             return false
         }
     }
-
-// Helper function for backtracking to track position of empty cell
+    
+    // Helper function for backtracking to track position of empty cell
     private func emptyCellPosition() -> [Int] {
         for row in 1 ... 9 {
             for col in 1 ... 9 {
@@ -102,7 +102,7 @@ class Board {
     private func backtracking() -> Bool {
       /* A general algorithm for fidning solutions to some computationl 
         problems, notably satisfaction problems, that incrementally builds 
-        candidates to the solutions, and abandons a cnadidate as soon as it
+        candidates to the solutions, and abandons a candidate as soon as it
         determines that the candidate cannot possibly be completed to a 
         valid solution.
        */
@@ -140,7 +140,8 @@ class Board {
         }
         filledBoard = grid
     }
-//Function that remove values in filled cells depending on difficulty
+
+    //Function that remove values in filled cells depending on difficulty
     private func subtractBoard(deletedVal:Int) {
         var emptyVal = 0
         while emptyVal < deletedVal {
@@ -174,14 +175,15 @@ class Board {
             subtractBoard(deletedVal:40)
             break
         case .medium:
-            subtractBoard(deletedVal:50)
+            subtractBoard(deletedVal:45)
             break
         case .hard:
-            subtractBoard(deletedVal:60)
+            subtractBoard(deletedVal:50)
             break
+        case .hell:
+            subtractBoard(deletedVal:55)
         }
     }
-
     
     func checkBoard() -> Bool {
         for row in 1 ... 9 {
@@ -199,6 +201,20 @@ class Board {
         return grid
     }
 
+    func getRepeated() -> [[Int]] {
+                for row in 1 ... 9 {
+            for col in 1 ... 9 {
+                let val = grid[row][col]
+                if  isValidVal(row:row, col:col, val:val) {
+                    // assign val to board
+                }
+            }  
+        }
+    }
+    
+    func getIncorrect() -> [[Int]] {
+        
+    }
     
     func printBoard() {
         for row in 1 ... 9 {
@@ -216,7 +232,7 @@ class Board {
             for col in 1 ... 9 {
                 nineByNineGrid[row - 1][col - 1] = grid[row][col]
             }
-        }  
+        }
         let data = try encoder.encode(nineByNineGrid)
         return String(data: data, encoding: .utf8)!
     }
