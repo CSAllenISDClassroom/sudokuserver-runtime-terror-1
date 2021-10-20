@@ -7,7 +7,6 @@ class BoardController {
                                                   .hell: 60]
 
     var boards = [Int : Board]()
-    var nextBoardId = 0
 
     func getNewBoard(difficulty: Difficulty) -> Int {
         var board = generateBoard()
@@ -19,14 +18,14 @@ class BoardController {
             let cellPositionToRemove = cellsToRemove[cellNumberToRemove]!
             board.board[cellPositionToRemove.boxIndex].cells[cellPositionToRemove.cellIndex].value = nil
         }
-        let boardId = getNextBoardId()
+        let boardId = getNewBoardId()
         boards[boardId] = board
         return boardId
     }
 
-    func getNextBoardId() -> Int {
-        nextBoardId += 1
-        return nextBoardId - 1
+    func getNewBoardId() -> Int {
+        let id = Int.random(in:100000...Int.max)
+        return boards[id] == nil ? id : getNewBoardId()
     }
 
     func getExistingBoard(id: Int) -> Board? {
