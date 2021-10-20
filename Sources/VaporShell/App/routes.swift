@@ -34,7 +34,7 @@ func routes(_ app: Application) throws {
                   
         guard let rawDifficulty: String = req.query["difficulty"],
               let difficulty = difficultyConversion[rawDifficulty] else {
-            throw Abort(.badRequest, reason: "Difficulty must be 'easy', 'medium', 'hard', or 'hell'.")
+            throw Abort(.badRequest, reason: "Difficulty specified doesn't match requirements.")
         }
         
         let rawId = boardController.getNewBoard(difficulty: difficulty)
@@ -55,10 +55,13 @@ func routes(_ app: Application) throws {
     }
     
     app.get("games", ":id", "cells") { req -> String in
-
-        /* retrieve parameterized id endpoint */
+        let filterConversion : [String : Filter] = ["all" : .all,
+                                                    "repeated" : .repeated,
+                                                    "incorrect" : .incorrect]
+                
         guard let id = req.parameters.get("id", as: Int.self),
-        /* 2d array of cells encoded into json */
+              let rawFilter: String = req.query["filter"],
+              let _ = filterConversion[rawFilter], // filter not fully implemented yet! TODO: change _ to filter as name of variable
               let board = boardController.getExistingBoard(id:id),
               let data = try? encoder.encode(board),
               let json = String(data: data, encoding: .utf8) else {
