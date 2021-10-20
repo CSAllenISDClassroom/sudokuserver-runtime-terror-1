@@ -2,8 +2,6 @@ import Vapor
 
 /*
  TODO
- - guard lets
- - merging code
  - json encoding
  - property and function access modifiers (public/private)
  - Board class code
@@ -80,8 +78,6 @@ func routes(_ app: Application) throws {
     
     app.put("games", ":id", "cells", ":boxIndex", ":cellIndex") { req -> HTTPStatus in
 
-        /* retrieve parameterized endpoints as strings and convert to int accordingly */
-
         guard let id = req.parameters.get("id", as: Int.self),
               let boxIndex = req.parameters.get("boxIndex", as: Int.self),
               let cellIndex = req.parameters.get("cellIndex", as: Int.self),
@@ -91,13 +87,6 @@ func routes(_ app: Application) throws {
              
             } 
 
-        /*******testing...
-        let diff = Difficulty.easy
-        idTable[id]?.setDifficulty(difficulty:diff)
-        idTable[id]?.setModifiableVal()
-         */
-
-        /* setting value */
         boardController.setCellValue(id: id, boxIndex:boxIndex, cellIndex:cellIndex, value:cellValue.value)
       
         return HTTPStatus.noContent
