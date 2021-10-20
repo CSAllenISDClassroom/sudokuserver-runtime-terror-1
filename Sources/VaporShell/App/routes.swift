@@ -27,13 +27,9 @@ func routes(_ app: Application) throws {
     }
     
     app.post("games") { req -> Response in
-        let difficultyConversion : [String : Difficulty] = ["easy" : .easy,
-                                                            "medium" : .medium,
-                                                            "hard" : .hard,
-                                                            "hell" : .hell]
                   
         guard let rawDifficulty: String = req.query["difficulty"],
-              let difficulty = difficultyConversion[rawDifficulty] else {
+              let difficulty = Difficulty(rawValue: rawDifficulty) else {
             throw Abort(.badRequest, reason: "Difficulty specified doesn't match requirements.")
         }
         
