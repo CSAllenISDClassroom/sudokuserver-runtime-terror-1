@@ -2,14 +2,15 @@ import Vapor
 
 /*
  TODO
- - json encoding
+ - json decoding
  - property and function access modifiers (public/private)
- - Board class code
- - BoardData struct code + converting from BoardData to Board and vice-versa
+ - filter implementation (and board validation method)
  */
 
 let boardController = BoardController()
+
 let encoder = JSONEncoder()
+let decoder = JSONDecoder()
 
 struct CellValue : Content {
     let value : Int
