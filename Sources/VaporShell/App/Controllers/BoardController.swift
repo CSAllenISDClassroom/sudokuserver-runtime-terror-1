@@ -32,6 +32,26 @@ class BoardController {
         return boards[id]
     }
 
+    // TODO implement this function
+    func getExistingBoard(id: Int, filter: Filter) -> Board? {
+        if(filter == .all) {
+            // TODO change to use another method/way
+            return getExistingBoard(id: Int)
+        }
+
+        if(filter == .incorrect) {
+            
+        }
+
+        if(filter == .repeated) {
+            
+        }
+    }
+
+    func isExistingBoard(id: Int) -> Bool {
+        return boards[id] != nil
+    }
+
     func setCellValue(id: Int, boxIndex: Int, cellIndex: Int, value: Int?) {
         guard let board = boards[id] else {
             fatalError("Couldn't find board with id: \(id)")
