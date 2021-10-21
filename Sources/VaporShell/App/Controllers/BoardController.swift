@@ -36,7 +36,7 @@ class BoardController {
     func getExistingBoard(id: Int, filter: Filter) -> Board? {
         if(filter == .all) {
             // TODO change to use another method/way
-            return getExistingBoard(id: Int)
+            return getExistingBoard(id: id)
         }
 
         if(filter == .incorrect) {
@@ -46,6 +46,9 @@ class BoardController {
         if(filter == .repeated) {
             
         }
+
+        // temporary, to make swift compiler happy
+        return nil
     }
 
     func isExistingBoard(id: Int) -> Bool {
