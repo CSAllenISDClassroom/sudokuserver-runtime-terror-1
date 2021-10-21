@@ -2,9 +2,9 @@ import Vapor
 
 /*
  TODO
- - json decoding
  - property and function access modifiers (public/private)
  - filter implementation (and board validation method)
+ - board id validation checker (to not crash program)
  */
 
 let boardController = BoardController()
@@ -86,13 +86,18 @@ func routes(_ app: Application) throws {
         // * Payload: value (null for removing value)
         // * Response: Nothing
         // * Status: 204 No Content
-        
+
         guard let id = req.parameters.get("id", as: Int.self),
               let boxIndex = req.parameters.get("boxIndex", as: Int.self),
-              let cellIndex = req.parameters.get("cellIndex", as: Int.self),
-              let cellValue = try? req.content.decode(CellValue.self) else {
-            throw Abort(.badRequest, reason: "Failed to encode boxIndex, cellIndex or cellValue")             
-        } 
+              let cellIndex = req.parameters.get("cellIndex", as: Int.self) else {
+            throw Abort(.badRequest, reason: "The id, boxIndex, and/or cellIndex doesn't match the requirements.")
+        }
+
+        guard let json : String = req.body.string,
+              let data = json.data(using: .utf8),
+              let cellValue = try? decoder.decode(CellValue.self, from: data) else {
+            throw Abort(.badRequest, reason: "The JSON received doesn't match the requirements.")
+        }
 
         boardController.setCellValue(id: id, boxIndex:boxIndex, cellIndex:cellIndex, value:cellValue.value)
         
