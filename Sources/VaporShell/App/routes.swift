@@ -1,4 +1,5 @@
 import Vapor
+import Foundation
 
 /*
  TODO
@@ -11,14 +12,6 @@ let boardController = BoardController()
 
 let encoder = JSONEncoder()
 let decoder = JSONDecoder()
-
-struct CellValue : Content {
-    let value : Int
-}
-
-struct BoardId : Codable {
-    let id : Int
-}
 
 func routes(_ app: Application) throws {
     app.get { req in
@@ -88,18 +81,41 @@ func routes(_ app: Application) throws {
         // * Status: 204 No Content
 
         guard let id = req.parameters.get("id", as: Int.self),
-              let boxIndex = req.parameters.get("boxIndex", as: Int.self),
-              let cellIndex = req.parameters.get("cellIndex", as: Int.self) else {
-            throw Abort(.badRequest, reason: "The id, boxIndex, and/or cellIndex doesn't match the requirements.")
+              let _ = boardController.getExistingBoard(id: id) else {
+            throw Abort(.badRequest, reason: "The board with the specified id could not be found.")
         }
 
+        let boxIndexErrorReason = "The boxIndex must be in range 0 ... 8"
+        let cellIndexErrorReason = boxIndexErrorReason.replacingOccurrences(of: "boxIndex", with: "cellIndex")
+                        
+        guard let boxIndex = req.parameters.get("boxIndex", as: Int.self) else {
+            throw Abort(.badRequest, reason: boxIndexErrorReason)
+        }
+
+        if(!(0...8).contains(boxIndex)) {
+            throw Abort(.badRequest, reason: boxIndexErrorReason)
+        }
+
+        guard let cellIndex = req.parameters.get("cellIndex", as: Int.self) else {
+            throw Abort(.badRequest, reason: cellIndexErrorReason)
+        }
+
+        if(!(0...8).contains(cellIndex)) {
+            throw Abort(.badRequest, reason: cellIndexErrorReason)
+        }
+        
         guard let json : String = req.body.string,
               let data = json.data(using: .utf8),
               let cellValue = try? decoder.decode(CellValue.self, from: data) else {
             throw Abort(.badRequest, reason: "The JSON received doesn't match the requirements.")
         }
 
-        boardController.setCellValue(id: id, boxIndex:boxIndex, cellIndex:cellIndex, value:cellValue.value)
+        if(!cellValue.checkValue()) {
+            throw Abort(.badRequest, reason: "The cell value must be null or in range 1 ... 9")
+        }
+        let value = cellValue.value
+
+        boardController.setCellValue(id: id, boxIndex:boxIndex, cellIndex:cellIndex, value: value)
         
         return HTTPStatus.noContent
     }
