@@ -35,7 +35,9 @@ public func routes(_ app: Application) throws {
             fatalError("Failed to encode BoardId into json.")
         }
         let body = Response.Body(string: json)
-        let response = Response(status: .created, body: body)
+        var headers = HTTPHeaders()
+        headers.add(name: .contentType, value: "application/json")
+        let response = Response(status: .created, headers: headers, body: body)
 
         return response
         
@@ -65,7 +67,9 @@ public func routes(_ app: Application) throws {
         }
 
         let body = Response.Body(string: json)
-        let response = Response(status: .ok, body: body)
+        var headers = HTTPHeaders()
+        headers.add(name: .contentType, value: "application/json")
+        let response = Response(status: .ok, headers: headers, body: body)
         
         return response
     }   
