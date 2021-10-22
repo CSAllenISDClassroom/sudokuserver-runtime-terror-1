@@ -82,7 +82,7 @@ public func routes(_ app: Application) throws {
         // * Status: 204 No Content
 
         guard let id = req.parameters.get("id", as: Int.self),
-              let _ = boardController.getExistingBoard(id: id, filter: .all) else {
+              (boardController.isExistingBoard(id: id)) else {
             throw Abort(.badRequest, reason: "The board with the specified id could not be found.")
         }
 
