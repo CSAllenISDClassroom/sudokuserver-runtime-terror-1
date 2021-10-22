@@ -1,4 +1,4 @@
-*The documentation below is currently out-of-date. Visit https://www.codermerlin.com/wiki/index.php?title=W3911_Sudoku_Server for the latest documentation.*
+*To learn how to use this API, visit https://www.codermerlin.com/wiki/index.php?title=W3911_Sudoku_Server for the latest documentation.*
 # Soodokoo, brought to you by Runtime Terror
 (yes, it's Soo-do-koo, the one by Runtime Terror)
 ## Team Members
@@ -6,119 +6,7 @@
 * Caleb Lee
 * Patrick Bui
 * Danyal Siddiqi
-## Usage
-### Notes
-- `boardId`: board identification string
-- `clientSecret`: client key to board modification
-- `difficulty`: "easy", "medium", or "hard"
-- `board`: 2-dimensional, 9x9 array with each cell's values
-- `cell`
-  - `row`: integer from 1-9
-  - `col`: integer from 1-9
-  - `value`: integer from 0-9; if 0, then cell is empty
-### Starting URL
-```https://soodokoo.allencs.org/api```
-### Create New Game
-#### Request
-```GET /game/new?difficulty=XXX```
-#### Response
-```
-{
-	boardId: "XXXXXX",
-	clientSecret: "XXXXXX",
-	board: [
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X]	
-	]
-}
-```
-### Place Number on Cell
-#### Request
-```
-POST /game/cell/place
 
-{
-	boardId: "XXXXXX",
-	clientSecret: "XXXXXX",
-	cell: {
-		row: X,
-		col: X,
-		value: X
-	},
-}
-```
-#### Response
-```
-{
-	boardId: XXXXXX,
-	board: [
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X]
-	]
-}
-``` 
-### Remove Number from Cell
-#### Request
-```
-POST /game/cell/remove
-
-{
-	boardId: "XXXXXX",
-	clientSecret: "XXXXXX",
-	cell: {
-		row: X,
-		col: X
-	}
-}
-```
-#### Response
-```
-{
-	boardId: XXXXXX,
-	board: [
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X],
-		[X, X, X, X, X, X, X, X, X]
-	]
-}
-```
-### Validate Board against Solution
-#### Request
-```
-POST /game/cell/validate
-
-{
-	boardId: "XXXXXX",
-	clientSecret: "XXXXXX",
-}
-```
-#### Response
-```
-{
-	boardId: XXXXXX,
-	matchesSolution: (true/false)
-}
-```
 ## Random Notes
 ### Board Generation Algorithm
 1. Generate random first row

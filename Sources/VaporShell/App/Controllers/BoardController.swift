@@ -1,15 +1,19 @@
-class BoardController {
+public class BoardController {
 
     // # of cells to remove by difficulty level
-    let difficultySettings : [Difficulty: Int] = [.easy: 35,
-                                                  .medium: 45,
-                                                  .hard: 50,
-                                                  .hell: 60]
+    private let difficultySettings : [Difficulty: Int] = [.easy: 35,
+                                                          .medium: 45,
+                                                          .hard: 50,
+                                                          .hell: 60]
 
-    var boards = [Int : Board]()
+    private let noBoardWithGivenIdErrorReason = "There is no board with the given id."
 
-    func getNewBoard(difficulty: Difficulty) -> Int {
+    private var boards = [Int : Board]()
+    private var solutions = [Int : Board]()
+
+    public func getNewBoard(difficulty: Difficulty) -> Int {
         var board = generateBoard()
+        let solution = board
         var cellNumbersAvailable = Array(1...81)
         let cellsToRemove = getAllCellPositions()
         for _ in 1...difficultySettings[difficulty]! {
@@ -20,55 +24,108 @@ class BoardController {
         }
         let boardId = getNewBoardId()
         boards[boardId] = board
+        solutions[boardId] = solution
         return boardId
     }
 
-    func getNewBoardId() -> Int {
+    private func getNewBoardId() -> Int {
         let id = Int.random(in:100000...Int.max)
         return boards[id] == nil ? id : getNewBoardId()
     }
 
-    func getExistingBoard(id: Int) -> Board? {
-        return boards[id]
-    }
-
-    // TODO implement this function
     func getExistingBoard(id: Int, filter: Filter) -> Board? {
+        guard let board = boards[id] else {
+            return nil
+        }
+        var boardToReturn : Board?
+        
         if(filter == .all) {
-            // TODO change to use another method/way
-            return getExistingBoard(id: id)
-        }
+            boardToReturn = board
+        } else if(filter == .incorrect) {
+            let board = board.board
+            let solution = solutions[id]!
+            var solutionCells = [Position : Cell]()
+            for box in solution.board {
+                for cell in box.cells {
+                    solutionCells[cell.position] = cell
+                }
+            }
+            var incorrectCells = Set<Cell>()
+            for box in board {
+                for cell in box.cells {
+                    if(cell.value != nil) {
+                        if(solutionCells[cell.position]!.value != cell.value) {
+                            incorrectCells.insert(cell)
+                        }
+                    }
+                }
+            }
+            boardToReturn = Board(cells: Array(incorrectCells))
+        } else if(filter == .repeated) {
+            var repeatedCells = Set<Cell>()
+            // Check in box, check in row, check in col
+            for box in board.board {
+                let cells = box.cells
+                repeatedCells.formUnion(getRepeatedCells(cells: cells))
+            }
 
-        if(filter == .incorrect) {
+            for colIndex in 0...8 {
+                let cells = getCol(id: id, colIndex: colIndex)
+                repeatedCells.formUnion(getRepeatedCells(cells: cells))
+            }
+
+            for rowIndex in 0...8 {
+                let cells = getRow(id: id, rowIndex: rowIndex)
+                repeatedCells.formUnion(getRepeatedCells(cells: cells))
+            }
+
+            boardToReturn = Board(cells: Array(repeatedCells))
             
+        } else {
+            boardToReturn = nil
         }
 
-        if(filter == .repeated) {
-            
-        }
-
-        // temporary, to make swift compiler happy
-        return nil
+        return boardToReturn
     }
 
-    func isExistingBoard(id: Int) -> Bool {
+    private func getRepeatedCells(cells: [Cell]) -> Set<Cell> {
+        var repeatedCells = Set<Cell>()
+        
+        for cellValue in 1...9 {
+            let cellsWithValue = cells.filter { $0.value == cellValue }
+            if(cellsWithValue.count > 1) {
+                repeatedCells.formUnion(cellsWithValue)
+            }
+        }
+
+        return repeatedCells
+    }
+
+    public func isExistingBoard(id: Int) -> Bool {
         return boards[id] != nil
     }
 
-    func setCellValue(id: Int, boxIndex: Int, cellIndex: Int, value: Int?) {
+    public func setCellValue(id: Int, boxIndex: Int, cellIndex: Int, value: Int?) {
         guard let board = boards[id] else {
-            fatalError("Couldn't find board with id: \(id)")
+            fatalError(noBoardWithGivenIdErrorReason)
         }
         var newBoard = board
         newBoard.board[boxIndex].cells[cellIndex].value = value
         setBoard(id: id, board: newBoard)
     }
 
-    func setBoard(id: Int, board: Board) {
+    private func setBoard(id: Int, board: Board) {
         boards[id] = board
     }
 
-    func getAllCellPositions() -> [Int : Position] {
+    private func getCell(id: Int, position: Position) -> Cell {
+        guard let board = boards[id] else {
+            fatalError(noBoardWithGivenIdErrorReason)
+        }
+        return board.board[position.boxIndex].cells[position.cellIndex]
+    }
+
+    private func getAllCellPositions() -> [Int : Position] {
         var possibleCellsToRemove = [Int : Position]()
         var cellCounter = 1
         for boxIndex in 0...8 {
@@ -80,7 +137,7 @@ class BoardController {
         return possibleCellsToRemove
     }
 
-    func generateBoard() -> Board {
+    private func generateBoard() -> Board {
         var boardValues : [[Int]] = []
         let firstRow = generateRow()
 
@@ -110,9 +167,9 @@ class BoardController {
             var cells = [Cell]()
             for cellIndex in 0...8 {
                 let cellPosition = Position(boxIndex: boxIndex, cellIndex: cellIndex)
-                let cellRowAndColIndexes = convertBoxCellIndexesToRowAndColIndexes(boxIndex: boxIndex, cellIndex: cellIndex)
-                let cellRow = cellRowAndColIndexes.row
-                let cellCol = cellRowAndColIndexes.col
+                let cellRowAndColIndexes = convertPositionToCartesianCoordinates(position: cellPosition)
+                let cellRow = cellRowAndColIndexes.rowIndex
+                let cellCol = cellRowAndColIndexes.colIndex
                 let cellValue = randomizedBoardValues[cellRow][cellCol]
                 cells.append(Cell(position: cellPosition, value: cellValue))
             }
@@ -123,7 +180,7 @@ class BoardController {
         return board
     }
 
-    func randomize(values: [[Int]]) -> [[Int]] {
+    private func randomize(values: [[Int]]) -> [[Int]] {
         var values = values
         let firstTriplets = values[0...2].shuffled()
         let secondTriplets = values[3...5].shuffled()
@@ -139,7 +196,7 @@ class BoardController {
         return values
     }
 
-    func generateRow() -> [Int] {
+    private func generateRow() -> [Int] {
         var values = Set<Int>()
         for value in 1...9 {
             values.insert(value)
@@ -148,20 +205,57 @@ class BoardController {
         return valuesInRandomOrder
     }
 
-    func convertBoxCellIndexesToRowAndColIndexes(boxIndex: Int, cellIndex: Int) -> (row: Int, col: Int) {
+    // TODO, move to struct (and make this func static)
+    private func convertPositionToCartesianCoordinates(position: Position) -> CartesianCoordinates {
+        let boxIndex = position.boxIndex
+        let cellIndex = position.cellIndex
         let row : Int = boxIndex / 3 * 3 + cellIndex / 3
         let col : Int = boxIndex % 3 * 3 + cellIndex % 3
-        return (row: row, col: col)
+        return CartesianCoordinates(rowIndex: row, colIndex: col)
+    }
+
+    // TODO, move to struct (and make this func static)
+    func getPositionByCartesianCoordinates() -> [CartesianCoordinates : Position] {
+        var positionByCartesianCoordinates = [CartesianCoordinates : Position]()
+        for boxIndex in 0...8 {
+            for cellIndex in 0...8 {
+                let position = Position(boxIndex: boxIndex, cellIndex: cellIndex)
+                let cartesianCoordinates = convertPositionToCartesianCoordinates(position: position)
+                positionByCartesianCoordinates[cartesianCoordinates] = position
+            }
+        }
+        return positionByCartesianCoordinates
+    }
+
+    func getCol(id: Int, colIndex: Int) -> [Cell] {
+        let positionByCartesianCoordinates = getPositionByCartesianCoordinates()
+        var cells = [Cell]()
+        for rowIndex in 0...8 {
+            let cartesianCoordinates = CartesianCoordinates(rowIndex: rowIndex, colIndex: colIndex)
+            let position = positionByCartesianCoordinates[cartesianCoordinates]!
+            cells.append(getCell(id: id, position: position))
+        }
+        return cells
+    }
+
+    func getRow(id: Int, rowIndex: Int) -> [Cell] {
+        let positionByCartesianCoordinates = getPositionByCartesianCoordinates()
+        var cells = [Cell]()
+        for colIndex in 0...8 {
+            let cartesianCoordinates = CartesianCoordinates(rowIndex: rowIndex, colIndex: colIndex)
+            let position = positionByCartesianCoordinates[cartesianCoordinates]!
+            cells.append(getCell(id: id, position: position))
+        }
+        return cells
     }
 }
 
 extension Array {
-
-            /**
-                           Returns a new array with the first elements up to specified distance being shifted to the end of the collection. If the distance is negative, returns a new array with the last elements up to the specified absolute distance being shifted to the beginning of the collection.
-                                              If the absolute distance exceeds the number of elements in the array, the elements are not shifted.
-             */
-    func shift(withDistance distance: Int = 1) -> Array<Element> {
+    /**
+     Returns a new array with the first elements up to specified distance being shifted to the end of the collection. If the distance is negative, returns a new array with the last elements up to the specified absolute distance being shifted to the beginning of the collection.
+     If the absolute distance exceeds the number of elements in the array, the elements are not shifted.
+     */
+    public func shift(withDistance distance: Int = 1) -> Array<Element> {
         let offsetIndex = distance >= 0 ?
           self.index(startIndex, offsetBy: distance, limitedBy: endIndex) :
           self.index(endIndex, offsetBy: distance, limitedBy: startIndex)
@@ -170,63 +264,11 @@ extension Array {
         return Array(self[index ..< endIndex] + self[startIndex ..< index])
     }
 
-        /**
-                   Shifts the first elements up to specified distance to the end of the array. If the distance is negative, shifts the last elements up to the specified absolute distance to the beginning of the array.
-                                  If the absolute distance exceeds the number of elements in the array, the elements are not shifted.
-         */
+    /**
+     Shifts the first elements up to specified distance to the end of the array. If the distance is negative, shifts the last elements up to the specified absolute distance to the beginning of the array.
+     If the absolute distance exceeds the number of elements in the array, the elements are not shifted.
+     */
     mutating func shiftInPlace(withDistance distance: Int = 1) {
         self = shift(withDistance: distance)
     }
-
 }
-
-    // func generateBoard() {
-//         let firstBox = generateBox()
-//         let boxes = [Box]()
-//         boxes.append(firstBox)
-//         for _ in 1...2 {
-//             guard let previousBox = boxes.last else {
-//                 fatalError("Could not find previous box while generating board...")
-//             }
-//             let newBox = generateNextBox(previousBox: previousBox)
-//         }
-//     }
-
-//     func generateBox(boxIndex: Int = 0) -> Box {
-//         var values = Array(1...9)
-//         randomizedValues = values.shuffle()
-//         var cells = [Cell]()
-//         var cellIndexCounter = 0
-//         for value in randomizedValues {
-//             let position = Position(boxIndex: boxIndex, cellIndex: cellIndexCounter)
-//             cells.append(Cell(position: position, value: value))
-//             cellIndexCounter += 1
-//         }
-        
-//         let box = Box(cells: cells)
-//         return box
-//     }
-
-//     func generateNextBox(previousBox: Box, boxIndexIncrement : Int = 1, cellIndexShift : Int = 3) -> Box {
-//         let boxWithUpdatedBoxIndex = changeBoxIndexOfCells(box: previousBox)
-//         let box
-//     }
-
-//     func changeBoxIndexOfCells(box: Box, boxIndexIncrement: Int = 1) -> Box {
-//         for cell in box.cells {
-//             let currentPosition = cell.position
-//             let newPosition = Position(boxIndex: currentPosition.boxIndex + boxIndexIncrement, cellIndex: currentPosition.cellIndex)
-//             cell.position = newPosition
-//         }
-//         return box
-//     }
-
-//     func changeCellIndexOfCells(box: Box, cellIndexShift: Int = 3) -> Box {
-//         for cell in box.cells {
-//             let currentPosition = cell.position
-//             let newPosition = Position(boxIndex: currentPosition.boxIndex, cellIndex: (currentPosition.cellIndex + cellIndexShift) % 9)
-//             cell.position = newPosition
-//         }
-//         return box
-//     }
-// }

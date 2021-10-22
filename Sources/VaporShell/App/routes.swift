@@ -3,9 +3,7 @@ import Foundation
 
 /*
  TODO
- - property and function access modifiers (public/private)
- - filter implementation (and board validation method)
- - board id validation checker (to not crash program)
+ - crash/fatalError thorough prevention checking + implementation
  */
 
 let boardController = BoardController()
@@ -13,7 +11,7 @@ let boardController = BoardController()
 let encoder = JSONEncoder()
 let decoder = JSONDecoder()
 
-func routes(_ app: Application) throws {
+public func routes(_ app: Application) throws {
     app.get { req in
         return  "Server side working!"
     }
@@ -37,7 +35,9 @@ func routes(_ app: Application) throws {
             fatalError("Failed to encode BoardId into json.")
         }
         let body = Response.Body(string: json)
-        let response = Response(status: .created, body: body)
+        var headers = HTTPHeaders()
+        headers.add(name: .contentType, value: "application/json")
+        let response = Response(status: .created, headers: headers, body: body)
 
         return response
         
@@ -52,13 +52,12 @@ func routes(_ app: Application) throws {
         // * Status code: 200 OK
         
         guard let rawFilter: String = req.query["filter"],
-              // filter not fully implemented yet! TODO: change _ to filter as name of variable
-              let _ : Filter = Filter(rawValue: rawFilter) else {
+              let filter : Filter = Filter(rawValue: rawFilter) else {
             throw Abort(.badRequest, reason: "The filter specified doesn't match the requirements.")
         }
 
         guard let id = req.parameters.get("id", as: Int.self),
-              let board = boardController.getExistingBoard(id: id) else {
+              let board = boardController.getExistingBoard(id: id, filter: filter) else {
             throw Abort(.badRequest, reason: "The board with the specified id could not be found.")
         }
 
@@ -68,7 +67,9 @@ func routes(_ app: Application) throws {
         }
 
         let body = Response.Body(string: json)
-        let response = Response(status: .ok, body: body)
+        var headers = HTTPHeaders()
+        headers.add(name: .contentType, value: "application/json")
+        let response = Response(status: .ok, headers: headers, body: body)
         
         return response
     }   
@@ -81,13 +82,13 @@ func routes(_ app: Application) throws {
         // * Status: 204 No Content
 
         guard let id = req.parameters.get("id", as: Int.self),
-              let _ = boardController.getExistingBoard(id: id) else {
+              let _ = boardController.getExistingBoard(id: id, filter: .all) else {
             throw Abort(.badRequest, reason: "The board with the specified id could not be found.")
         }
 
         let boxIndexErrorReason = "The boxIndex must be in range 0 ... 8"
         let cellIndexErrorReason = boxIndexErrorReason.replacingOccurrences(of: "boxIndex", with: "cellIndex")
-                        
+        
         guard let boxIndex = req.parameters.get("boxIndex", as: Int.self) else {
             throw Abort(.badRequest, reason: boxIndexErrorReason)
         }

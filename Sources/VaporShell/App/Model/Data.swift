@@ -1,20 +1,26 @@
-struct Position: Codable {
-    let boxIndex: Int
-    let cellIndex: Int
+public struct CartesianCoordinates: Hashable {
+    public let rowIndex: Int
+    public let colIndex: Int
 }
 
-struct Cell: Codable {
-    let position: Position
-    var value: Int?
+public struct Position: Codable, Hashable {
+    public let boxIndex: Int
+    public let cellIndex: Int
 }
-struct Box: Codable {
-    var cells: [Cell]
 
-    init(cells: [Cell]) {
+public struct Cell: Codable, Hashable {
+    public let position: Position
+    public var value: Int?
+}
+
+public struct Box: Codable {
+    public var cells: [Cell]
+
+    public init(cells: [Cell]) {
         self.cells = cells
     }
 
-    init(boxIndex: Int) {
+    public init(boxIndex: Int) {
         var cells = [Cell]()
         for cellIndex in 0 ..< 9 {
             cells.append(Cell(position: Position(boxIndex: boxIndex, cellIndex: cellIndex), value: cellIndex))
@@ -24,9 +30,9 @@ struct Box: Codable {
 }
 
 struct Board: Codable {
-    var board: [Box]
+    public var board: [Box]
 
-    init() {
+    public init() {
         var board = [Box]()
         for boxIndex in 0 ..< 9 {
             board.append(Box(boxIndex: boxIndex))
@@ -34,20 +40,29 @@ struct Board: Codable {
         self.board = board
     }
 
-    init(board: [Box]) {
+    public init(board: [Box]) {
         self.board = board
+    }
+
+    public init(cells: [Cell]) {
+        var boxes = [Box]()
+        for boxIndex in 0...8 {
+            let boxCells = cells.filter { $0.position.boxIndex == boxIndex }
+            boxes.append(Box(cells: boxCells))
+        }
+        self.board = boxes
     }
 }
 
 /// JSON ENCODING ///
 
-struct BoardId: Codable {
+public struct BoardId: Codable {
     let id: Int
 }
 
 /// JSON DECODING ///
 
-struct CellValue: Decodable {
+public struct CellValue: Decodable {
     let value: Int?
 
     func checkValue() -> Bool {
