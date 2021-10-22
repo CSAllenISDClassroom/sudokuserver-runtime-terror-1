@@ -118,6 +118,6 @@ public func routes(_ app: Application) throws {
 
         boardController.setCellValue(id: id, boxIndex:boxIndex, cellIndex:cellIndex, value: value)
         
-        return HTTPStatus.noContent
+        return HTTPStatus.ok
     }
 }
