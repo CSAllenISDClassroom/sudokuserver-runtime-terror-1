@@ -1,4 +1,4 @@
-*The documentation below is currently out-of-date. Visit https://www.codermerlin.com/wiki/index.php?title=W3911_Sudoku_Server for the latest documentation.*
+*To learn how to use this API, visit https://www.codermerlin.com/wiki/index.php?title=W3911_Sudoku_Server for the latest documentation.*
 # Soodokoo, brought to you by Runtime Terror
 (yes, it's Soo-do-koo, the one by Runtime Terror)
 ## Team Members
