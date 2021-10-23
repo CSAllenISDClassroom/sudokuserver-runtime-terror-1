@@ -73,11 +73,11 @@ class BoardController {
                 let value = boardVal[row][col]
                 
                 // single cell defined and appended to a box
-                //if value != 0 { 
-                let position = Position(boxIndex:boxIndex, cellIndex:cellIndex)
-                let cell = Cell(position:position, value:value)
-                cells.append(cell)
-                //}
+                if (filter == .all) || ((filter == .incorrect || filter == .repeated) && value != 0) {
+                    let position = Position(boxIndex:boxIndex, cellIndex:cellIndex)
+                    let cell = Cell(position:position, value:value)
+                    cells.append(cell)
+                }
             }
             let box = Box(cells: cells)
             boxes.append(box)

@@ -203,26 +203,26 @@ class Board {
 
     // Gets all the repeated values, or cells that do not satisfy the sudoku rules
     func getRepeated() -> [[Int]] {
-        var repeatedVal = grid
+        var repeatedVal = Array(repeating: Array(repeating: 0, count: 10), count: 10)
         for row in 1 ... 9 {
             for col in 1 ... 9 {
-                let val = repeatedVal[row][col]
-                if isValidVal(row:row, col:col, val:val) {
-                    repeatedVal[row][col] = 0
+                let gridVal = grid[row][col]
+                if isValidVal(row:row, col:col, val:gridVal) {
+                    repeatedVal[row][col] = gridVal
                 }
             }               
         } 
-        return repeatedVal 
+        return repeatedVal
     }
 
     // Gets all values or cells that do not match the whole solution, or the filled board
     func getIncorrect() -> [[Int]] {
-        var incorrectVal = grid
+        var incorrectVal = Array(repeating: Array(repeating: 0, count: 10), count: 10)
         for row in 1 ... 9 {
             for col in 1 ... 9 {
                 let val = incorrectVal[row][col]
-                if val == filledBoard[row][col] {
-                    incorrectVal[row][col] = 0
+                if val != filledBoard[row][col] {
+                    incorrectVal[row][col] = grid[row][col]
                 }
             }               
         } 
