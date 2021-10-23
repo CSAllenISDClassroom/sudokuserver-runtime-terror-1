@@ -2,8 +2,9 @@ import Vapor
 
 let boardController = BoardController()
 let encoder = JSONEncoder()
+let decoder = JSONDecoder()
 
-struct CellValue : Content {
+struct CellValue : Codable {
     let value : Int
 }
 
@@ -67,15 +68,7 @@ func routes(_ app: Application) throws {
     app.put("games", ":id", "cells", ":boxIndex", ":cellIndex") { req -> HTTPStatus in
 
         /* retrieve parameterized endpoints as strings and convert to int accordingly */
-
-        guard let id = req.parameters.get("id", as:Int.self),
-              let boxIndex = req.parameters.get("boxIndex", as: Int.self),
-              let cellIndex = req.parameters.get("cellIndex", as: Int.self),
-              let cellValue = try? req.content.decode(CellValue.self) else {
-            throw Abort(.badRequest, reason: "Failed to encode boxIndex, cellIndex or cellValue")
-        } 
-        /////////
-        guard let id = req.parameters.get("id", as: Int.self),
+          guard let id = req.parameters.get("id", as: Int.self),
               (boardController.isExistingBoard(id: id)) else {
             throw Abort(.badRequest, reason: "The board with the specified id could not be found.")
         }
@@ -89,11 +82,18 @@ func routes(_ app: Application) throws {
               ((0...8).contains(cellIndex)) else {
             throw Abort(.badRequest, reason: "The cellIndex must be in range 0 ... 8")
         }
-/*
-        if(!cellValue.checkValue()) {
+
+        guard let json : String = req.body.string,
+              let data = json.data(using: .utf8),
+              let cellValue = try? decoder.decode(CellValue.self, from: data) else {
+            throw Abort(.badRequest, reason: "The JSON received doesn't match the requirements.")
+        }
+
+        if !(1...9).contains(cellValue.value) {
             throw Abort(.badRequest, reason: "The cell value must be null or in range 1 ... 9")
         }
-*/
+
+        print(id, boxIndex, cellIndex, cellValue.value)
         /* setting value */
         let board = boardController.getExistingBoard(id:id)
         board?.setVal(boxIndex:boxIndex, cellIndex:cellIndex, val:cellValue.value)

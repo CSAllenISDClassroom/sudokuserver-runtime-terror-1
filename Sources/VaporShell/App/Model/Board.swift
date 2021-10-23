@@ -21,8 +21,8 @@ class Board {
     }
     
     func setVal(boxIndex:Int, cellIndex:Int, val:Int) {
-        let row = (boxIndex - 1) / 3 * 3 + (cellIndex - 1) / 3 + 1
-        let col = (boxIndex - 1) % 3 * 3 + (cellIndex - 1) % 3 + 1
+        let row = boxIndex / 3 * 3 + cellIndex / 3 + 1
+        let col = boxIndex % 3 * 3 + cellIndex % 3 + 1
         //if boolGrid[row][col] {
         grid[row][col] = val
         //}
