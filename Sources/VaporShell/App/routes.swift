@@ -1,123 +1,102 @@
 import Vapor
-import Foundation
-
-/*
- TODO
- - crash/fatalError thorough prevention checking + implementation
- */
 
 let boardController = BoardController()
-
 let encoder = JSONEncoder()
-let decoder = JSONDecoder()
 
-public func routes(_ app: Application) throws {
+struct CellValue : Content {
+    let value : Int
+}
+func routes(_ app: Application) throws {
     app.get { req in
         return  "Server side working!"
     }
-    
-    app.post("games") { req -> Response in
 
-        // * Action: Creates a new game and associated board
-        // * Payload: None
-        // * Response: Id uniquely identifying a game
-        // * Status code: 201 Created
+    /* initial board setup for a user */
+    app.post("games") { req -> Response in
         
+        /* generate and fill a new board */
+        let id = boardController.getNewBoard()
+        
+        /* assign difficulty */
         guard let rawDifficulty: String = req.query["difficulty"],
               let difficulty = Difficulty(rawValue: rawDifficulty) else {
             throw Abort(.badRequest, reason: "Difficulty specified doesn't match requirements.")
         }
-        
-        let rawId = boardController.getNewBoard(difficulty: difficulty)
-        let constructedId = BoardId(id: rawId)
-        guard let data = try? encoder.encode(constructedId),
-              let json = String(data: data, encoding: .utf8) else {
-            fatalError("Failed to encode BoardId into json.")
-        }
-        let body = Response.Body(string: json)
+        boardController.setDifficulty(id:id, difficulty: difficulty)
+
+        /* assign id as json through header and define response code to data */
+        let body = Response.Body(string: String(id))
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/json")
         let response = Response(status: .created, headers: headers, body: body)
-
+        
         return response
-        
-
     }
-    
-    app.get("games", ":id", "cells") { req -> Response in
 
-        // * Action: None
-        // * Payload: None
-        // * Response: cells
-        // * Status code: 200 OK
+    app.get("games", ":id", "cells") { req -> String in
+
+        /* retrieve parameterized id endpoint */
+        guard let id = req.parameters.get("id", as: Int.self) else {
+            throw Abort(.badRequest, reason: "The board with the specified id could not be found.")
+        }        
         
+        /* getting filtered values into board data structure */
         guard let rawFilter: String = req.query["filter"],
               let filter : Filter = Filter(rawValue: rawFilter) else {
             throw Abort(.badRequest, reason: "The filter specified doesn't match the requirements.")
         }
+        let boardData = boardController.getFilteredCells(id: id, filter: filter)
 
-        guard let id = req.parameters.get("id", as: Int.self),
-              let board = boardController.getExistingBoard(id: id, filter: filter) else {
-            throw Abort(.badRequest, reason: "The board with the specified id could not be found.")
+        /* data structure encoded into json */
+        guard let json = try? boardController.jsonBoard(board:boardData) else {
+            throw Abort(.badRequest, reason: "Failed to encode Board to Json")
         }
-
-        guard let data = try? encoder.encode(board),
-              let json = String(data: data, encoding: .utf8) else {
-            throw Abort(.badRequest, reason: "There was a problem with returning back the board to you!")
-        }
-
-        let body = Response.Body(string: json)
-        var headers = HTTPHeaders()
-        headers.add(name: .contentType, value: "application/json")
-        let response = Response(status: .ok, headers: headers, body: body)
-        
-        return response
-    }   
+        return json
+    }
     
     app.put("games", ":id", "cells", ":boxIndex", ":cellIndex") { req -> HTTPStatus in
 
-        // * Action: Place specified value at in game at boxIndex, cellIndex
-        // * Payload: value (null for removing value)
-        // * Response: Nothing
-        // * Status: 204 No Content
+        /* retrieve parameterized endpoints as strings and convert to int accordingly */
 
+        guard let id = req.parameters.get("id", as:Int.self),
+              let boxIndex = req.parameters.get("boxIndex", as: Int.self),
+              let cellIndex = req.parameters.get("cellIndex", as: Int.self),
+              let cellValue = try? req.content.decode(CellValue.self) else {
+            throw Abort(.badRequest, reason: "Failed to encode boxIndex, cellIndex or cellValue")
+        } 
+        /////////
         guard let id = req.parameters.get("id", as: Int.self),
               (boardController.isExistingBoard(id: id)) else {
             throw Abort(.badRequest, reason: "The board with the specified id could not be found.")
         }
-
-        let boxIndexErrorReason = "The boxIndex must be in range 0 ... 8"
-        let cellIndexErrorReason = boxIndexErrorReason.replacingOccurrences(of: "boxIndex", with: "cellIndex")
-        
-        guard let boxIndex = req.parameters.get("boxIndex", as: Int.self) else {
-            throw Abort(.badRequest, reason: boxIndexErrorReason)
+/// FIX DUPLICATION LOGIC MESS
+        guard let boxIndex = req.parameters.get("boxIndex", as: Int.self),
+              ((0...8).contains(boxIndex)) else {
+            throw Abort(.badRequest, reason: "The boxIndex must be in range 0 ... 8")
         }
-
+/*
         if(!(0...8).contains(boxIndex)) {
-            throw Abort(.badRequest, reason: boxIndexErrorReason)
+            throw Abort(.badRequest, reason: "The boxIndex must be in range 0 ... 8")
         }
-
-        guard let cellIndex = req.parameters.get("cellIndex", as: Int.self) else {
-            throw Abort(.badRequest, reason: cellIndexErrorReason)
+*/
+        guard let cellIndex = req.parameters.get("cellIndex", as: Int.self),
+              ((0...8).contains(cellIndex)) else {
+            throw Abort(.badRequest, reason: "The cellIndex must be in range 0 ... 8")
         }
-
+/*
         if(!(0...8).contains(cellIndex)) {
-            throw Abort(.badRequest, reason: cellIndexErrorReason)
+            throw Abort(.badRequest, reason: "The cellIndex must be in range 0 ... 8")
         }
-        
-        guard let json : String = req.body.string,
-              let data = json.data(using: .utf8),
-              let cellValue = try? decoder.decode(CellValue.self, from: data) else {
-            throw Abort(.badRequest, reason: "The JSON received doesn't match the requirements.")
-        }
-
+ */
+        /***********fix needed
         if(!cellValue.checkValue()) {
             throw Abort(.badRequest, reason: "The cell value must be null or in range 1 ... 9")
         }
-        let value = cellValue.value
-
-        boardController.setCellValue(id: id, boxIndex:boxIndex, cellIndex:cellIndex, value: value)
-        
+        */
+        /* setting value */
+        let board = boardController.getExistingBoard(id:id)
+        board?.setVal(boxIndex:boxIndex, cellIndex:cellIndex, val:cellValue.value)
+      
         return HTTPStatus.ok
     }
 }
