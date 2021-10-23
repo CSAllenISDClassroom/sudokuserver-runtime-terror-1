@@ -197,6 +197,7 @@ class Board {
 
     // Gets all the cells of a board
     func getBoard() -> [[Int]] {
+        printBoard()
         return grid
     }
 
@@ -220,7 +221,7 @@ class Board {
         for row in 1 ... 9 {
             for col in 1 ... 9 {
                 let val = incorrectVal[row][col]
-                if val != filledBoard[row][col] {
+                if val == filledBoard[row][col] {
                     incorrectVal[row][col] = 0
                 }
             }               
@@ -229,7 +230,7 @@ class Board {
     }
 
     // printing for debug
-    /*
+    
     func printBoard() {
         for row in 1 ... 9 {
             for col in 1 ... 9 {
@@ -238,7 +239,7 @@ class Board {
             print("")
         }
     }
-     */
+    
 
     /*
     func jsonBoard() throws -> String {

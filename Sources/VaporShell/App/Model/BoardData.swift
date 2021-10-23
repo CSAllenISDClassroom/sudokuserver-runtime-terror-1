@@ -6,13 +6,13 @@ struct Position: Codable {
         self.cellIndex = cellIndex
     }
 
-    init(row:Int, col:Int) {
+/*    init(row:Int, col:Int) {
         boxIndex = (row - 1) / 3 * 3 + (col - 1) / 3 + 1
         cellIndex = (row - 1) % 3 * 3 + (col - 1) % 3 + 1
         //        let row = (boxIndex - 1) / 3 * 3 + (cellIndex - 1) / 3 + 1
         //        let col = (boxIndex - 1) % 3 * 3 + (cellIndex - 1) % 3 + 1
 
-    }
+    }*/
 }
 
 struct Cell: Codable {
@@ -24,6 +24,8 @@ struct Cell: Codable {
         self.value = value
     }
 }
+
+
 
 struct Box: Codable {
     var cells: [Cell]

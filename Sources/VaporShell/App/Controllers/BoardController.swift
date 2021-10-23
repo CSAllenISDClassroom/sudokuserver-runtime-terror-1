@@ -68,18 +68,19 @@ class BoardController {
             var cells = [Cell]()
             for cellIndex in 0 ... 8 {
                 // row, col, val
-                let row = (boxIndex - 1) / 3 * 3 + (cellIndex - 1) / 3 + 1
-                let col = (boxIndex - 1) % 3 * 3 + (cellIndex - 1) % 3 + 1
+                let row = boxIndex / 3 * 3 + cellIndex / 3 + 1
+                let col = boxIndex % 3 * 3 + cellIndex % 3 + 1
                 let value = boardVal[row][col]
-
+                
                 // single cell defined and appended to a box
-                if value == 0 { 
+                //if value != 0 { 
                 let position = Position(boxIndex:boxIndex, cellIndex:cellIndex)
                 let cell = Cell(position:position, value:value)
                 cells.append(cell)
-                }
+                //}
             }
             let box = Box(cells: cells)
+            boxes.append(box)
         }
         let board = BoardData(board: boxes)
         return board
