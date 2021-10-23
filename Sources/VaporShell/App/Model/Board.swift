@@ -220,8 +220,7 @@ class Board {
         var incorrectVal = Array(repeating: Array(repeating: 0, count: 10), count: 10)
         for row in 1 ... 9 {
             for col in 1 ... 9 {
-                let val = incorrectVal[row][col]
-                if val != filledBoard[row][col] {
+                if grid[row][col] != filledBoard[row][col] {
                     incorrectVal[row][col] = grid[row][col]
                 }
             }               

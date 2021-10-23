@@ -6,6 +6,11 @@ let encoder = JSONEncoder()
 struct CellValue : Content {
     let value : Int
 }
+
+struct BoardId: Codable {
+    let id: Int
+}
+
 func routes(_ app: Application) throws {
     app.get { req in
         return  "Server side working!"
@@ -25,7 +30,12 @@ func routes(_ app: Application) throws {
         boardController.setDifficulty(id:id, difficulty: difficulty)
 
         /* assign id as json through header and define response code to data */
-        let body = Response.Body(string: String(id))
+        let constructedId = BoardId(id: id)
+        guard let data = try? encoder.encode(constructedId),
+              let json = String(data: data, encoding: .utf8) else {
+            fatalError("Failed to encode BoardId into json.")
+        }
+        let body = Response.Body(string: json)
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/json")
         let response = Response(status: .created, headers: headers, body: body)
@@ -69,30 +79,21 @@ func routes(_ app: Application) throws {
               (boardController.isExistingBoard(id: id)) else {
             throw Abort(.badRequest, reason: "The board with the specified id could not be found.")
         }
-/// FIX DUPLICATION LOGIC MESS
+
         guard let boxIndex = req.parameters.get("boxIndex", as: Int.self),
               ((0...8).contains(boxIndex)) else {
             throw Abort(.badRequest, reason: "The boxIndex must be in range 0 ... 8")
         }
-/*
-        if(!(0...8).contains(boxIndex)) {
-            throw Abort(.badRequest, reason: "The boxIndex must be in range 0 ... 8")
-        }
-*/
+
         guard let cellIndex = req.parameters.get("cellIndex", as: Int.self),
               ((0...8).contains(cellIndex)) else {
             throw Abort(.badRequest, reason: "The cellIndex must be in range 0 ... 8")
         }
 /*
-        if(!(0...8).contains(cellIndex)) {
-            throw Abort(.badRequest, reason: "The cellIndex must be in range 0 ... 8")
-        }
- */
-        /***********fix needed
         if(!cellValue.checkValue()) {
             throw Abort(.badRequest, reason: "The cell value must be null or in range 1 ... 9")
         }
-        */
+*/
         /* setting value */
         let board = boardController.getExistingBoard(id:id)
         board?.setVal(boxIndex:boxIndex, cellIndex:cellIndex, val:cellValue.value)
